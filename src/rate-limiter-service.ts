@@ -2,12 +2,17 @@ import { type RedisClientType, createClient } from "redis";
 import type { Request, Response, NextFunction } from "express";
 import rateLimit, { RateLimitRequestHandler } from "express-rate-limit";
 import RedisStore from "rate-limit-redis";
-import { RateLimiterConfig } from "./types"; 
 
+export interface RateLimiterConfig {
+  windowMs: number;
+  limit: number;
+  redisUrl: string;
+  redisPassword: string;
+}
 
 export class RateLimiterService {
   private redisClient!: RedisClientType;
-  private rateLimiter!: RateLimitRequestHandler;
+  private rateLimitEndpointId!: RateLimitRequestHandler;
   private initialized: Promise<void>;
 
   constructor(private config: RateLimiterConfig) {
@@ -52,34 +57,34 @@ export class RateLimiterService {
       });
 
       // Initialize rate limiter
-      this.rateLimiter = rateLimit({
+      this.rateLimitEndpointId = rateLimit({
         store: redisStore,
         windowMs: this.config.windowMs,
         limit: this.config.limit,
         legacyHeaders: true,
         standardHeaders: true,
         message: "Too many requests, please try again later.",
-        keyGenerator: this.extractWebhookId,
+        keyGenerator: this.extractEndpointId,
       });
     } catch (error) {
       throw new Error(`Failed to initialize rate limiter: ${error}`);
     }
   }
 
-  private extractWebhookId(req: Request): string {
+  private extractEndpointId(req: Request): string {
     // Extract webhookId from URL parameters
-    const webhookId = req.params.webhookId || req.path.split('/').pop();
+    const endpointId = req.params.endpointId || req.path.split('/').pop();
     
-    if (!webhookId) {
-      throw new Error("Missing webhookId parameter for rate limiting");
+    if (!endpointId) {
+      throw new Error("Missing endpointId parameter for rate limiting");
     }
 
-    return `webhook:${webhookId}`;
+    return `endpoint:${endpointId}`;
   }
 
-  public async middleware(req: Request, res: Response, next: NextFunction) {
+  public async endpointId(req: Request, res: Response, next: NextFunction) {
     await this.initialized;
-    return this.rateLimiter(req, res, next);
+    return this.rateLimitEndpointId(req, res, next);
   }
 
   public async cleanup(): Promise<void> {
