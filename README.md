@@ -1,6 +1,6 @@
 # Redis Express Rate Limiter for Node.js
 
-This is a simple rate limiter middleware for express that incorperates the express-rate-limit library and the rate-limit-redis library as well as the redis library.The middleware id currently limited to rate limiting by /:endpointId.
+This is a simple rate limiter middleware for express that incorperates the express-rate-limit library and the rate-limit-redis library as well as the redis library.The middleware is currently limited to rate limiting for /:endpointId.
 This is useful for rate limiting api endpoints given to users for webhook integration with external services. Other usecase will be available soon. 
 
 ## Features
