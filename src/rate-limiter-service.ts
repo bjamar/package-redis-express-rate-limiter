@@ -2,13 +2,7 @@ import { type RedisClientType, createClient } from "redis";
 import type { Request, Response, NextFunction } from "express";
 import rateLimit, { RateLimitRequestHandler } from "express-rate-limit";
 import RedisStore from "rate-limit-redis";
-
-export interface RateLimiterConfig {
-  windowMs: number;
-  limit: number;
-  redisUrl: string;
-  redisPassword: string;
-}
+import type { RateLimiterConfig } from "./types";
 
 export class RateLimiterService {
   private redisClient!: RedisClientType;
